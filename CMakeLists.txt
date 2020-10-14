@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS "-fpermissive")
 # ==============================================================================
 # Find OpenCV
 # ==============================================================================
-find_package(OpenCV )
+find_package(OpenCV)
 
 # ==============================================================================
 # Find Eigen
@@ -28,19 +28,19 @@ set(EIGEN_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 # ==============================================================================
 find_package(OpenMP)
 if (USE_OPENMP)
-	if(NOT OPENMP_FOUND)
-		message(FATAL_ERROR "OPENMP not found.")
-	endif()
-	add_definitions(-DUSE_OPENMP)
-	set(TRGT_LNK_LBS_ADDITIONAL OpenMP::OpenMP_CXX)
+    if (NOT OPENMP_FOUND)
+        message(FATAL_ERROR "OPENMP not found.")
+    endif ()
+    add_definitions(-DUSE_OPENMP)
+    set(TRGT_LNK_LBS_ADDITIONAL OpenMP::OpenMP_CXX)
 endif (USE_OPENMP)
 
 # ==============================================================================
 # Includes
 # ==============================================================================
-include_directories (
-	${PROJECT_SOURCE_DIR}/include
-	${PROJECT_SOURCE_DIR}/graph-cut-ransac/src/pygcransac/include
+include_directories(
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/graph-cut-ransac/src/pygcransac/include
 )
 
 # ==============================================================================
@@ -48,22 +48,22 @@ include_directories (
 # ==============================================================================
 # Set header files for the library
 file(GLOB_RECURSE HDRS_GraphCutRANSAC
-	"graph-cut-ransac/src/pygcransac/include/*.h"
-) 
+        "graph-cut-ransac/src/pygcransac/include/*.h"
+        )
 
 # Set source files to be added to the library
-file(GLOB_RECURSE SRCS_GraphCutRANSAC 
-	"graph-cut-ransac/src/pygcransac/include/*.cpp"
-)
+file(GLOB_RECURSE SRCS_GraphCutRANSAC
+        "graph-cut-ransac/src/pygcransac/include/*.cpp"
+        )
 
 add_library(GraphCutRANSAC STATIC
-	${HDRS_GraphCutRANSAC}
-	${SRCS_GraphCutRANSAC}
-)
+        ${HDRS_GraphCutRANSAC}
+        ${SRCS_GraphCutRANSAC}
+        )
 
 target_link_libraries(GraphCutRANSAC
-	${OpenCV_LIBS}
-	Eigen3::Eigen)
+        ${OpenCV_LIBS}
+        Eigen3::Eigen)
 
 # ==============================================================================
 # Structure: MAGSAC Library
@@ -72,40 +72,59 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 # Set header files for the library
 file(GLOB_RECURSE HDRS_MAGSAC
-	"include/*.h"
-	"include/*.cpp"
-) 
+        "include/*.h"
+        "include/*.cpp"
+        )
 
 # Set source files to be added to the library
-file(GLOB_RECURSE SRCS_MAGSAC 
-	"src/*.cpp"
-)
+file(GLOB_RECURSE SRCS_MAGSAC
+        "src/*.cpp"
+        )
 
 add_executable(${PROJECT_NAME}
-	${HDRS_MAGSAC}
-	${SRCS_MAGSAC}
-)
+        ${HDRS_MAGSAC}
+        ${SRCS_MAGSAC}
+        )
 
-target_link_libraries(${PROJECT_NAME} 
-	${OpenCV_LIBS}
-	Eigen3::Eigen
-)
-	
+set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS 1)
+
+target_link_libraries(${PROJECT_NAME}
+        ${OpenCV_LIBS}
+        Eigen3::Eigen
+        )
+
 # ==============================================================================
 # Structure: Applications
 # ==============================================================================
 if (CREATE_SAMPLE_PROJECT)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
-	add_executable(SampleProject
-		src/main.cpp)
-		
-	target_link_libraries(SampleProject 
-		${PROJECT_NAME}
-		${OpenCV_LIBS}
-		Eigen3::Eigen
-	)
+    add_executable(SampleProject
+            src/main.cpp)
 
-	add_dependencies(SampleProject ${PROJECT_NAME})
+    target_link_libraries(SampleProject
+            ${PROJECT_NAME}
+            ${OpenCV_LIBS}
+            Eigen3::Eigen
+            )
+
+    add_dependencies(SampleProject ${PROJECT_NAME})
 endif (CREATE_SAMPLE_PROJECT)
 
+if (RUN_EXPERIENCE_PROJECT)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+
+    add_executable(RunExperience
+            experience/run_experience_MAGSAC.cpp
+            experience/experience_utils.hpp experience/experience_utils.cpp
+            experience/metrics.hpp experience/metrics.cpp
+            experience/handle_exp.hpp)
+
+    target_link_libraries(RunExperience
+            ${PROJECT_NAME}
+            ${OpenCV_LIBS}
+            Eigen3::Eigen
+            )
+
+	add_dependencies(RunExperience ${PROJECT_NAME})
+endif (RUN_EXPERIENCE_PROJECT)
