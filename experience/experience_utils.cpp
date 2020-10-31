@@ -4,26 +4,28 @@
 
 #include "experience_utils.hpp"
 
-bool
-ReadPoints(const char *fileInliers, const char *fileOutliers, cv::Mat &points, std::vector<int> &groundTruthLabels) {
+bool ReadPoints(const char *fileInliers, const char *fileOutliers,
+                cv::Mat &points, std::vector<int> &groundTruthLabels,
+                const bool readOutliers) {
     std::vector<Match> ptsInliers;
     std::vector<Match> ptsOutliers;
 
-    if(!Match::loadMatch(fileInliers, ptsInliers)){
+    if (!Match::loadMatch(fileInliers, ptsInliers)) {
         std::cerr << "Problem loading inliers: " << fileInliers << std::endl;
         return false;
     }
-    if(!Match::loadMatch(fileOutliers, ptsOutliers)){
-        std::cerr << "Problem loading inliers: " << fileOutliers << std::endl;
-        return false;
+    if (readOutliers) {
+        if (!Match::loadMatch(fileOutliers, ptsOutliers)) {
+            std::cerr << "Problem loading outliers: " << fileOutliers << std::endl;
+            return false;
+        }
     }
     std::vector<Match> ptsMixed;
 
     randomDataFusionWithMemory(ptsInliers, ptsOutliers, ptsMixed, 1, 0, groundTruthLabels);
 
     points.create(static_cast<int>(ptsMixed.size()), 4, CV_64F);
-    for (int i = 0; i < ptsMixed.size(); ++i)
-    {
+    for (int i = 0; i < ptsMixed.size(); ++i) {
         points.at<double>(i, 0) = ptsMixed[i].x1;
         points.at<double>(i, 1) = ptsMixed[i].y1;
         points.at<double>(i, 2) = ptsMixed[i].x2;
@@ -33,7 +35,8 @@ ReadPoints(const char *fileInliers, const char *fileOutliers, cv::Mat &points, s
 }
 
 bool
-saveExpInfo(const char *nameFile, const unsigned int seed, const int nGen, const int nRun, const char *pathToIn1, const char *pathToIn2,
+saveExpInfo(const char *nameFile, const unsigned int seed, const int nGen, const int nRun, const char *pathToIn1,
+            const char *pathToIn2,
             const double AlgoPrecMean, const double AlgoPrecStd, const std::vector<double> &AlgoPrecVect,
             const double AlgoRecMean, const double AlgoRecStd, const std::vector<double> &AlgoRecVect,
             const double AlgoRuntimeMean, const double AlgoRuntimeStd, const std::vector<double> &AlgoRuntimeVect,

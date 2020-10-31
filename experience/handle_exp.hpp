@@ -19,13 +19,13 @@ bool runAnExp(T &estimator,
               U &model,
               const std::vector<int> &groundTruthLabels,
               const bool verbose,
-              const int pointNumber,
               const double magsacConfidence,
               const cv::Mat &points,
               const bool useMagsacPP,
               const double maxSigmaMagsac,
               const int iterMax,
               const double magsacRefThreshold,
+              const unsigned long int seed,
               std::vector<std::vector<size_t>> &possibleInliersVect,
               std::vector<std::vector<double>> &weightsVect,
               std::vector<std::vector<int>> &vecInliersVect,
@@ -37,10 +37,9 @@ bool runAnExp(T &estimator,
 
     std::vector<int> groundTruthInliers = getSubsetFromLabeling(groundTruthLabels, 1);
 
-    const size_t referenceInlierNumber = groundTruthInliers.size();
 
     // Initialize the sampler used for selecting minimal samples
-    gcransac::sampler::UniformSampler mainSampler(&points);
+    gcransac::sampler::UniformSampler mainSampler(&points, seed);
 
     typename MAGSAC<cv::Mat, T>::Version magsacVersion;
     if (useMagsacPP) {

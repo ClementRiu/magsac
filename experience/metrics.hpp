@@ -80,5 +80,14 @@ computeModelError(const std::vector<int> &indexesToCompute, const cv::Mat &point
     }
 }
 
+template<typename T, typename U>
+void
+computeModelError(const std::vector<size_t> &indexesToCompute, const cv::Mat &points, const T &estimator, const U &model,
+                  std::vector<double> &errors) {
+    std::vector<size_t>::const_iterator itIndexesToCompute = indexesToCompute.begin();
+    for (; itIndexesToCompute != indexesToCompute.end(); itIndexesToCompute++){
+        errors.push_back(computePointError(*itIndexesToCompute, points, estimator, model));
+    }
+}
 
 #endif //MAGSAC_METRICS_HPP

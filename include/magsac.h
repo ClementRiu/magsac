@@ -10,6 +10,10 @@
 #include <math.h>
 #include "gamma_values.cpp"
 
+#include <iostream>
+
+#include "../experience/metrics.hpp"
+
 #ifdef _WIN32
 #include <ppl.h>
 #endif
@@ -538,6 +542,14 @@ bool MAGSAC<DatumType, ModelEstimator>::sigmaConsensus(
 
 
                 }
+                std::vector<double> errors;
+                computeModelError(sigma_inliers, points_, estimator_, sigma_models[0], errors);
+                double errorMAX = 0;
+                for (int i = 0; i < errors.size(); i++) {
+                    if (errors[i] > errorMAX) {
+                        errorMAX = errors[i];
+                    }
+                }
             }
         }
     }
@@ -604,6 +616,14 @@ bool MAGSAC<DatumType, ModelEstimator>::sigmaConsensus(
         else
             last_iteration_number = static_cast<int>(round(marginalized_iteration_number));
 
+        std::vector<double> errors;
+        computeModelError(sigma_inliers, points_, estimator_, refined_model_, errors);
+        double errorMAX = 0;
+        for (int i = 0; i < errors.size(); i++) {
+            if (errors[i] > errorMAX) {
+                errorMAX = errors[i];
+            }
+        }
         inliersIdxsSaved = sigma_inliers;
         weightsSaved = final_weights;
         return true;

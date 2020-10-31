@@ -6,53 +6,70 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
-#include <chrono>
-#include <cstddef>
 #include <mutex>
-#include <memory>
 #include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/calib3d.hpp>
-#include <opencv2/features2d.hpp>
 
-#include "magsac_utils.h"
-#include "utils.h"
 #include "magsac.h"
 
-#include "uniform_sampler.h"
-#include "flann_neighborhood_graph.h"
-#include "fundamental_estimator.h"
-#include "homography_estimator.h"
-#include "types.h"
 #include "model.h"
 #include "estimators.h"
 
-//#include "experience_utils.hpp"
-//#include "metrics.hpp"
 #include "handle_exp.hpp"
+#include "cmdLine.hpp"
 
 int main(int argc, char **argv) {
     int iterMax = 10000;
-
-    int modelUsed = 1; // 0 for Homography, 1 for Fundamental.
+    int modelUsed = 0;
 
     double maxSigmaMagsac = 50; // TODO check if sigma or propTo sigma
     double magsacConfidence = 0.99; // The required confidence in the results
     double magsacRefThreshold = 2.0;
 
-    bool useMagsacPP = true;
-
     int nGen = 1;
     int nRun = 1;
 
-    bool verbose = true;
     unsigned int seed = (unsigned) time(0); // Use option -t for a reproducible run
 
-    // TODO handle arguments
+    utility::CmdLine cmd;
+    cmd.add(utility::make_option('i', iterMax, "iterMax")
+                    .doc("Number of iterations of Orsa and Ransac."));
+    cmd.add(utility::make_option('u', modelUsed, "modelUsed")
+                    .doc("Model used: 0 for homography, 1 for fundamental."));
+    cmd.add(utility::make_switch('p', "magsacPlusPlus")
+                    .doc("Add to use Magsac++"));
+
+    cmd.add(utility::make_option('s', maxSigmaMagsac, "maxSigmaMagsac")
+                    .doc("Maximum threshold for Magsac. To set high."));
+    cmd.add(utility::make_option('c', magsacConfidence, "confidenceMagsac")
+                    .doc("Confidence in the result."));
+    cmd.add(utility::make_option('r', magsacRefThreshold, "magsacRefThreshold")
+                    .doc("Reference threshold for magsac."));
+
+    cmd.add(utility::make_switch('o', "ignoreOutliers")
+                    .doc("Set to ignore outliers."));
+    cmd.add(utility::make_option('e', nGen, "num-gen-exp")
+                    .doc("Number of noisy datasets generated for the experience."));
+    cmd.add(utility::make_option('n', nRun, "num-run")
+                    .doc("Number of run of the algorithm."));
+
+    cmd.add(utility::make_switch('v', "verbose")
+                    .doc("Print info during the run."));
+    cmd.add(utility::make_option('t', seed, "time-seed")
+                    .doc("Use value instead of time for random seed (for debug)."));
+
+    try {
+        cmd.process(argc, argv);
+    } catch (const std::string &s) {
+        std::cerr << s << std::endl;
+        return 1;
+    }
+
+    bool verbose = cmd.used('v');
+    bool useMagsacPP = cmd.used('p');
+    bool readOutliers = !cmd.used('o');
+
 
     std::srand(seed);
-
 
     std::vector<std::vector<int>> labelsVect;
     std::vector<std::vector<size_t>> possibleInliersVect;
@@ -74,7 +91,7 @@ int main(int argc, char **argv) {
 
     std::cout << "\nReading " << pathToInInliers << " and " << pathToInOutliers << std::endl;
 
-    if (!ReadPoints(pathToInInliers, pathToInOutliers, points, groundTruthLabels)) {
+    if (!ReadPoints(pathToInInliers, pathToInOutliers, points, groundTruthLabels, readOutliers)) {
         std::cerr << "Problem loading points !" << std::endl;
         return 1;
     }
@@ -94,7 +111,6 @@ int main(int argc, char **argv) {
 
     for (int run = 0; run < nRun; run++) {
 
-
         if (modelUsed == 0) {
             if (verbose) {
                 printf("\tEstimated model = 'homography'.\n");
@@ -107,13 +123,13 @@ int main(int argc, char **argv) {
                      model,
                      groundTruthLabels,
                      verbose,
-                     pointNumber,
                      magsacConfidence,
                      points,
                      useMagsacPP,
                      maxSigmaMagsac,
                      iterMax,
                      magsacRefThreshold,
+                     seed,
                      possibleInliersVect,
                      weightsVect,
                      vecInliersVect,
@@ -135,13 +151,13 @@ int main(int argc, char **argv) {
                      model,
                      groundTruthLabels,
                      verbose,
-                     pointNumber,
                      magsacConfidence,
                      points,
                      useMagsacPP,
                      maxSigmaMagsac,
                      iterMax,
                      magsacRefThreshold,
+                     seed,
                      possibleInliersVect,
                      weightsVect,
                      vecInliersVect,

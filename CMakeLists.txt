@@ -118,7 +118,8 @@ if (RUN_EXPERIENCE_PROJECT)
             experience/run_experience_MAGSAC.cpp
             experience/experience_utils.hpp experience/experience_utils.cpp
             experience/metrics.hpp experience/metrics.cpp
-            experience/handle_exp.hpp)
+            experience/handle_exp.hpp
+            experience/cmdLine.hpp)
 
     target_link_libraries(RunExperience
             ${PROJECT_NAME}

@@ -71,8 +71,9 @@ struct Match {
     }
 };
 
-bool
-ReadPoints(const char *fileInliers, const char *fileOutliers, cv::Mat &points, std::vector<int> &groundTruthLabels);
+bool ReadPoints(const char *fileInliers, const char *fileOutliers,
+                cv::Mat &points, std::vector<int> &groundTruthLabels,
+                bool readOutliers = true);
 
 template<typename T, typename U>
 void
