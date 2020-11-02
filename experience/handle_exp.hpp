@@ -39,7 +39,7 @@ bool runAnExp(T &estimator,
 
 
     // Initialize the sampler used for selecting minimal samples
-    gcransac::sampler::UniformSampler mainSampler(&points, seed);
+    gcransac::sampler::UniformSampler mainSampler(&points, true, seed);
 
     typename MAGSAC<cv::Mat, T>::Version magsacVersion;
     if (useMagsacPP) {
