@@ -88,7 +88,7 @@ bool runAnExp(T &estimator,
     transformToInliers(inliersIdxsSaved, weightsSaved, points, inlierPoints, vec_inliersMagsac); // TODO
 
     if (okMagsac) {
-        computeModelError(vec_inliersMagsac, inlierPoints, estimator, model, errorsSaved);
+        computeModelError(vec_inliersMagsac, points, estimator, model, errorsSaved);
         errorMagsac = meanOfVect(errorsSaved);
     }
 
