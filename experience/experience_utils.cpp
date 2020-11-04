@@ -4,32 +4,56 @@
 
 #include "experience_utils.hpp"
 
-bool ReadPoints(const char *fileInliers, const char *fileOutliers,
-                cv::Mat &points, std::vector<int> &groundTruthLabels,
-                const bool readOutliers) {
-    std::vector<Match> ptsInliers;
-    std::vector<Match> ptsOutliers;
+#include <cassert>
 
-    if (!Match::loadMatch(fileInliers, ptsInliers)) {
+bool ReadPoints(const char *fileInliers, const char *fileOutliers, const int nGen,
+                std::vector<cv::Mat> &pointsAll, std::vector<std::vector<int>> &groundTruthLabelsAll,
+                const bool readOutliers) {
+    std::vector<Match> ptsInliersAll;
+    std::vector<Match> ptsOutliersAll;
+
+    if (!Match::loadMatch(fileInliers, ptsInliersAll)) {
         std::cerr << "Problem loading inliers: " << fileInliers << std::endl;
         return false;
     }
     if (readOutliers) {
-        if (!Match::loadMatch(fileOutliers, ptsOutliers)) {
+        if (!Match::loadMatch(fileOutliers, ptsOutliersAll)) {
             std::cerr << "Problem loading outliers: " << fileOutliers << std::endl;
             return false;
         }
     }
-    std::vector<Match> ptsMixed;
+    const int numPoints = ptsInliersAll.size();
 
-    randomDataFusionWithMemory(ptsInliers, ptsOutliers, ptsMixed, 1, 0, groundTruthLabels);
+    assert(numPoints % nGen == 0);
+    const int numPointsPerGen = numPoints / nGen;
 
-    points.create(static_cast<int>(ptsMixed.size()), 4, CV_64F);
-    for (int i = 0; i < ptsMixed.size(); ++i) {
-        points.at<double>(i, 0) = ptsMixed[i].x1;
-        points.at<double>(i, 1) = ptsMixed[i].y1;
-        points.at<double>(i, 2) = ptsMixed[i].x2;
-        points.at<double>(i, 3) = ptsMixed[i].y2;
+    for (int gen = 0; gen < nGen; gen++) {
+        std::vector<Match> ptsInliers;
+        std::vector<Match> ptsOutliers;
+
+        for (int i = gen * numPointsPerGen; i < (gen + 1) * numPointsPerGen; i++) {
+            ptsInliers.push_back(ptsInliersAll[i]);
+            if (readOutliers) {
+                ptsOutliers.push_back(ptsOutliersAll[i]);
+            }
+        }
+
+        std::vector<Match> ptsMixed;
+        std::vector<int> groundTruthLabels;
+
+        randomDataFusionWithMemory(ptsInliers, ptsOutliers, ptsMixed, 1, 0, groundTruthLabels);
+        cv::Mat points;
+
+        points.create(static_cast<int>(ptsMixed.size()), 4, CV_64F);
+        for (int i = 0; i < ptsMixed.size(); ++i) {
+            points.at<double>(i, 0) = ptsMixed[i].x1;
+            points.at<double>(i, 1) = ptsMixed[i].y1;
+            points.at<double>(i, 2) = ptsMixed[i].x2;
+            points.at<double>(i, 3) = ptsMixed[i].y2;
+        }
+
+        pointsAll.push_back(points);
+        groundTruthLabelsAll.push_back(groundTruthLabels);
     }
     return true;
 }

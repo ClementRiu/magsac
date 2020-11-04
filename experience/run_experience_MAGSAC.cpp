@@ -68,14 +68,16 @@ int main(int argc, char **argv) {
     bool useMagsacPP = cmd.used('p');
     bool readOutliers = !cmd.used('o');
 
-
     std::srand(seed);
 
-    std::vector<std::vector<int>> labelsVect;
     std::vector<std::vector<size_t>> possibleInliersVect;
     std::vector<std::vector<double>> weightsVect;
     std::vector<std::vector<int>> vecInliersVect;
     std::vector<std::vector<double>> errorsVect;
+
+    std::vector<double> precisionMagsacVect;
+    std::vector<double> recallMagsacVect;
+    std::vector<double> runtimeMagsacVect;
 
     const char *pathToInInliers = argv[1];
     const char *pathToInOutliers = argv[2];
@@ -86,88 +88,94 @@ int main(int argc, char **argv) {
     const char *pathToOutComputedInliers = argv[7];
     const char *pathToOutErrors = argv[8];
 
-    cv::Mat points; // The point correspondences, each is of format "x1 y1 x2 y2"
-    std::vector<int> groundTruthLabels; // The ground truth labeling provided in the dataset
+    std::vector<cv::Mat> pointsAll; // The point correspondences, each is of format "x1 y1 x2 y2"
+    std::vector<std::vector<int>> groundTruthLabelsAll; // The ground truth labeling provided in the dataset
 
     std::cout << "\nReading " << pathToInInliers << " and " << pathToInOutliers << std::endl;
 
-    if (!ReadPoints(pathToInInliers, pathToInOutliers, points, groundTruthLabels, readOutliers)) {
+    if (!ReadPoints(pathToInInliers, pathToInOutliers, nGen, pointsAll, groundTruthLabelsAll, readOutliers)) {
         std::cerr << "Problem loading points !" << std::endl;
         return 1;
     }
 
-    const size_t pointNumber = points.rows; // The number of points in the scene
+    for (int gen = 0; gen < nGen; gen++) {
 
-    if (pointNumber == 0) // If there are no points, return
-    {
-        return 1; // TODO
-    }
+        cv::Mat points = pointsAll[gen];
+        std::vector<int> groundTruthLabels = groundTruthLabelsAll[gen];
 
-    labelsVect.push_back(groundTruthLabels);
+        const size_t pointNumber = points.rows; // The number of points in the scene
 
-    std::vector<double> precisionMagsacVect;
-    std::vector<double> recallMagsacVect;
-    std::vector<double> runtimeMagsacVect;
+        if (pointNumber == 0) // If there are no points, return
+        {
+            return 1; // TODO
+        }
 
-    for (int run = 0; run < nRun; run++) {
-
-        if (modelUsed == 0) {
-            if (verbose) {
-                printf("\tEstimated model = 'homography'.\n");
+        for (int run = 0; run < nRun; run++) {
+            if (!verbose) {
+                std::cout << "\rDataset " << gen + 1 << " out of " << nGen << " - Experiment " << run + 1 << " out of "
+                          << nRun << std::flush;
             }
 
-            magsac::utils::DefaultHomographyEstimator estimator; // The robust homography estimator class containing the function for the fitting and residual calculation
-            gcransac::Homography model; // The estimated model
+            if (modelUsed == 0) {
+                if (verbose) {
+                    printf("\tEstimated model = 'homography'.\n");
+                }
 
-            runAnExp(estimator,
-                     model,
-                     groundTruthLabels,
-                     verbose,
-                     magsacConfidence,
-                     points,
-                     useMagsacPP,
-                     maxSigmaMagsac,
-                     iterMax,
-                     magsacRefThreshold,
-                     seed,
-                     possibleInliersVect,
-                     weightsVect,
-                     vecInliersVect,
-                     errorsVect,
-                     runtimeMagsacVect,
-                     precisionMagsacVect,
-                     recallMagsacVect);
-        }
-        if (modelUsed == 1) {
-            if (verbose) {
-                printf("\tEstimated model = 'fundamental'.\n");
+                magsac::utils::DefaultHomographyEstimator estimator; // The robust homography estimator class containing the function for the fitting and residual calculation
+                gcransac::Homography model; // The estimated model
+
+                runAnExp(estimator,
+                         model,
+                         groundTruthLabels,
+                         verbose,
+                         magsacConfidence,
+                         points,
+                         useMagsacPP,
+                         maxSigmaMagsac,
+                         iterMax,
+                         magsacRefThreshold,
+                         seed,
+                         possibleInliersVect,
+                         weightsVect,
+                         vecInliersVect,
+                         errorsVect,
+                         runtimeMagsacVect,
+                         precisionMagsacVect,
+                         recallMagsacVect);
             }
+            if (modelUsed == 1) {
+                if (verbose) {
+                    printf("\tEstimated model = 'fundamental'.\n");
+                }
 
-            magsac::utils::DefaultFundamentalMatrixEstimator estimator(
-                    maxSigmaMagsac); // The robust homography estimator class containing the function for the fitting and residual calculation
-            gcransac::FundamentalMatrix model; // The estimated model
+                magsac::utils::DefaultFundamentalMatrixEstimator estimator(
+                        maxSigmaMagsac); // The robust homography estimator class containing the function for the fitting and residual calculation
+                gcransac::FundamentalMatrix model; // The estimated model
 
-            runAnExp(estimator,
-                     model,
-                     groundTruthLabels,
-                     verbose,
-                     magsacConfidence,
-                     points,
-                     useMagsacPP,
-                     maxSigmaMagsac,
-                     iterMax,
-                     magsacRefThreshold,
-                     seed,
-                     possibleInliersVect,
-                     weightsVect,
-                     vecInliersVect,
-                     errorsVect,
-                     runtimeMagsacVect,
-                     precisionMagsacVect,
-                     recallMagsacVect);
+                runAnExp(estimator,
+                         model,
+                         groundTruthLabels,
+                         verbose,
+                         magsacConfidence,
+                         points,
+                         useMagsacPP,
+                         maxSigmaMagsac,
+                         iterMax,
+                         magsacRefThreshold,
+                         seed,
+                         possibleInliersVect,
+                         weightsVect,
+                         vecInliersVect,
+                         errorsVect,
+                         runtimeMagsacVect,
+                         precisionMagsacVect,
+                         recallMagsacVect);
+            }
+        } // End of the run loop.
+        if (!verbose) {
+            std::cout << std::endl;
         }
-    }
-
+    } // End of the gen loop.
     std::cout << std::endl;
 
     double precisionMagsacMean = meanOfVect(precisionMagsacVect);
@@ -189,7 +197,7 @@ int main(int argc, char **argv) {
                 runtimeMagsacMean, runtimeMagsacStd, runtimeMagsacVect,
                 true);
 
-    saveVectOfVect(pathToOutLabels, labelsVect);
+    saveVectOfVect(pathToOutLabels, groundTruthLabelsAll);
     saveVectOfVect(pathToOutWeights, weightsVect);
     saveVectOfVect(pathToOutPossibleInliers, possibleInliersVect);
     saveVectOfVect(pathToOutComputedInliers, vecInliersVect);
