@@ -109,6 +109,8 @@ int main(int argc, char **argv) {
         {
             return 1; // TODO
         }
+        gcransac::sampler::UniformSampler mainSampler(&points, true, seed);
+
 
         for (int run = 0; run < nRun; run++) {
             if (!verbose) {
@@ -134,7 +136,7 @@ int main(int argc, char **argv) {
                          maxSigmaMagsac,
                          iterMax,
                          magsacRefThreshold,
-                         seed,
+                         mainSampler,
                          possibleInliersVect,
                          weightsVect,
                          vecInliersVect,
@@ -162,7 +164,7 @@ int main(int argc, char **argv) {
                          maxSigmaMagsac,
                          iterMax,
                          magsacRefThreshold,
-                         seed,
+                         mainSampler,
                          possibleInliersVect,
                          weightsVect,
                          vecInliersVect,
