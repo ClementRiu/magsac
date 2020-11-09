@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
     std::vector<std::vector<double>> weightsVect;
     std::vector<std::vector<int>> vecInliersVect;
     std::vector<std::vector<double>> errorsVect;
+    std::vector<std::vector<double>> errorsAllVect;
 
     std::vector<double> precisionMagsacVect;
     std::vector<double> recallMagsacVect;
@@ -87,6 +88,7 @@ int main(int argc, char **argv) {
     const char *pathToOutWeights = argv[6];
     const char *pathToOutComputedInliers = argv[7];
     const char *pathToOutErrors = argv[8];
+    const char *pathToOutErrorsAll = argv[9];
 
     std::vector<cv::Mat> pointsAll; // The point correspondences, each is of format "x1 y1 x2 y2"
     std::vector<std::vector<int>> groundTruthLabelsAll; // The ground truth labeling provided in the dataset
@@ -99,7 +101,6 @@ int main(int argc, char **argv) {
     }
 
     for (int gen = 0; gen < nGen; gen++) {
-
         cv::Mat points = pointsAll[gen];
         std::vector<int> groundTruthLabels = groundTruthLabelsAll[gen];
 
@@ -141,6 +142,7 @@ int main(int argc, char **argv) {
                          weightsVect,
                          vecInliersVect,
                          errorsVect,
+                         errorsAllVect,
                          runtimeMagsacVect,
                          precisionMagsacVect,
                          recallMagsacVect);
@@ -169,6 +171,7 @@ int main(int argc, char **argv) {
                          weightsVect,
                          vecInliersVect,
                          errorsVect,
+                         errorsAllVect,
                          runtimeMagsacVect,
                          precisionMagsacVect,
                          recallMagsacVect);
@@ -204,6 +207,7 @@ int main(int argc, char **argv) {
     saveVectOfVect(pathToOutPossibleInliers, possibleInliersVect);
     saveVectOfVect(pathToOutComputedInliers, vecInliersVect);
     saveVectOfVect(pathToOutErrors, errorsVect);
+    saveVectOfVect(pathToOutErrorsAll, errorsAllVect);
 
     return 0;
 }

@@ -30,6 +30,7 @@ bool runAnExp(T &estimator,
               std::vector<std::vector<double>> &weightsVect,
               std::vector<std::vector<int>> &vecInliersVect,
               std::vector<std::vector<double>> &errorsVect,
+              std::vector<std::vector<double>> &errorsAllVect,
               std::vector<double> &runtimeMagsacVect,
               std::vector<double> &precisionMagsacVect,
               std::vector<double> &recallMagsacVect) {
@@ -53,9 +54,9 @@ bool runAnExp(T &estimator,
 
     int iterationNumber = 0; // Number of iterations required
     ModelScore score; // The model score
-    std::vector<size_t> inliersIdxsSaved;
-    std::vector<double> weightsSaved;
-    std::vector<double> errorsSaved;
+    std::vector<size_t> indexSavedInliers;
+    std::vector<double> weightsSavedInliers;
+    std::vector<double> errorsSavedInliers;
 
     std::vector<int> vec_inliersMagsac;
     bool okMagsac = false;
@@ -74,24 +75,28 @@ bool runAnExp(T &estimator,
                           model, // The estimated model
                           iterationNumber, // The number of iterations
                           score,
-                          inliersIdxsSaved,
-                          weightsSaved); // The score of the estimated model
+                          indexSavedInliers,
+                          weightsSavedInliers); // The score of the estimated model
     clock_t end = std::clock();
     runtimeMagsac = (double) (end - begin) / CLOCKS_PER_SEC;
 
-    possibleInliersVect.push_back(inliersIdxsSaved);
-    weightsVect.push_back(weightsSaved);
+    possibleInliersVect.push_back(indexSavedInliers);
+    weightsVect.push_back(weightsSavedInliers);
 
     cv::Mat inlierPoints;
-    transformToInliers(inliersIdxsSaved, weightsSaved, points, inlierPoints, vec_inliersMagsac); // TODO
+    transformToInliers(indexSavedInliers, weightsSavedInliers, points, inlierPoints, vec_inliersMagsac); // TODO
 
     if (okMagsac) {
-        computeModelError(vec_inliersMagsac, points, estimator, model, errorsSaved);
-        errorMagsac = meanOfVect(errorsSaved);
+        computeModelError(vec_inliersMagsac, points, estimator, model, errorsSavedInliers);
+        errorMagsac = meanOfVect(errorsSavedInliers);
     }
 
     vecInliersVect.push_back(vec_inliersMagsac);
-    errorsVect.push_back(errorsSaved);
+    errorsVect.push_back(errorsSavedInliers);
+
+    std::vector<double> errorsAll;
+    computeModelError(points, estimator, model, errorsAll);
+    errorsAllVect.push_back(errorsAll);
 
     int numTruePositivesMagsac = 0;
     double precisionMagsac = 0;
