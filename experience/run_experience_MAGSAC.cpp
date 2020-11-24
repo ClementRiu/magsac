@@ -20,8 +20,9 @@
 int main(int argc, char **argv) {
     int iterMax = 10000;
     int modelUsed = 0;
+    size_t partitionNumber = 10;
 
-    double maxSigmaMagsac = 50; // TODO check if sigma or propTo sigma
+    double maxSigmaMagsac = 10; // TODO check if sigma or propTo sigma
     double magsacConfidence = 0.99; // The required confidence in the results
     double magsacRefThreshold = 2.0;
 
@@ -37,6 +38,8 @@ int main(int argc, char **argv) {
                     .doc("Model used: 0 for homography, 1 for fundamental."));
     cmd.add(utility::make_switch('p', "magsacPlusPlus")
                     .doc("Add to use Magsac++"));
+    cmd.add(utility::make_option('m', partitionNumber, "partitionNumber")
+                    .doc("Partition of the residuals."));
 
     cmd.add(utility::make_option('s', maxSigmaMagsac, "maxSigmaMagsac")
                     .doc("Maximum threshold for Magsac. To set high."));
@@ -134,6 +137,7 @@ int main(int argc, char **argv) {
                          magsacConfidence,
                          points,
                          useMagsacPP,
+                         partitionNumber,
                          maxSigmaMagsac,
                          iterMax,
                          magsacRefThreshold,
@@ -163,6 +167,7 @@ int main(int argc, char **argv) {
                          magsacConfidence,
                          points,
                          useMagsacPP,
+                         partitionNumber,
                          maxSigmaMagsac,
                          iterMax,
                          magsacRefThreshold,

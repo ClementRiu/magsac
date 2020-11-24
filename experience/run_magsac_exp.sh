@@ -8,7 +8,8 @@ expSeed=${expSeed:--1}
 expIterMax=${expIterMax:-10000}
 expModel=${expModel:-0}
 expMagsacPP=${expMagsacPP:-0}
-expMaxSigma=${expMaxSigma:-50}
+expMagsacPartition=${expMagsacPartition:-10}
+expMaxSigma=${expMaxSigma:-10}
 expConfidence=${expConfidence:-0.99}
 expRefThreshold=${expRefThreshold:-2.0}
 expNGen=${expNGen:-5}
@@ -75,7 +76,7 @@ do
     do
         #Gaussian Noise:
 
-        expArgs="-i ${expIterMax} -u ${expModel} -s ${expMaxSigma} -c ${expConfidence} -r ${expRefThreshold} -e ${expNGen} -n ${expNRun}"
+        expArgs="-i ${expIterMax} -u ${expModel} -m ${expMagsacPartition} -s ${expMaxSigma} -c ${expConfidence} -r ${expRefThreshold} -e ${expNGen} -n ${expNRun}"
 
 
         if [ "${expMagsacPP}" -eq "1" ]; then
@@ -91,33 +92,33 @@ do
             expArgs="${expArgs} -t ${expSeed}"
         fi
 
-        expCounterG=${expBegin}
-
-        while [ "$expCounterG" -ge "$expBegin" ] && [ "$expCounterG" -le "$expEnd" ]
-        do
-            inInliers="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_NoisyIn.txt"
-            inOutliers="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_Outliers.txt"
-
-            outInfo="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacOut.txt"
-            outLabels="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacLabels.txt"
-            outPosInl="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacPosInl.txt"
-            outWeights="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacWeights.txt"
-            outInliers="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacInliers.txt"
-            outErrors="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacErrors.txt"
-            outErrorsAll="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacErrorsAll.txt"
-
-            printf "Reading ${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_... ."
-
-            ~/Documents/these/magsac/bin/RunExperience $expArgs ${inInliers} ${inOutliers} ${outInfo} ${outLabels} ${outPosInl} ${outWeights} ${outInliers} ${outErrors} ${outErrorsAll}
-
-            printf "Done.\n\n"
-
-            expCounterG=$(($expCounterG+1))
-        done # End of the folder loop for Gaussian noise
+        # expCounterG=${expBegin}
+        #
+        # while [ "$expCounterG" -ge "$expBegin" ] && [ "$expCounterG" -le "$expEnd" ]
+        # do
+        #     inInliers="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_NoisyIn.txt"
+        #     inOutliers="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_Outliers.txt"
+        #
+        #     outInfo="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacOut.txt"
+        #     outLabels="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacLabels.txt"
+        #     outPosInl="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacPosInl.txt"
+        #     outWeights="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacWeights.txt"
+        #     outInliers="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacInliers.txt"
+        #     outErrors="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacErrors.txt"
+        #     outErrorsAll="${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_magsacErrorsAll.txt"
+        #
+        #     printf "Reading ${outExpPathG}/${folderName}_${expCounterG}_std${expStdNoise}_ratio${expOutlierRatio}_... ."
+        #
+        #     ~/Documents/these/magsac/bin/RunExperience $expArgs ${inInliers} ${inOutliers} ${outInfo} ${outLabels} ${outPosInl} ${outWeights} ${outInliers} ${outErrors} ${outErrorsAll}
+        #
+        #     printf "Done.\n\n"
+        #
+        #     expCounterG=$(($expCounterG+1))
+        # done # End of the folder loop for Gaussian noise
 
         #Uniform Noise:
 
-        expArgs="${expArgs}"
+        # expArgs="${expArgs}"
 
         expCounterU=${expBegin}
 

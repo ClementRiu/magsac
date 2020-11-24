@@ -28,14 +28,14 @@ public:
         MAGSAC_PLUS_PLUS
     };
 
-    MAGSAC(const Version magsac_version_ = Version::MAGSAC_PLUS_PLUS) :
+    MAGSAC(const Version magsac_version_ = Version::MAGSAC_PLUS_PLUS, const size_t partitionNumber = 5) :
             time_limit(std::numeric_limits<double>::max()), //
             desired_fps(-1),
             iteration_limit(std::numeric_limits<size_t>::max()),
             maximum_threshold(10.0),
             apply_post_processing(true),
             mininum_iteration_number(50),
-            partition_number(5),
+            partition_number(partitionNumber),
             core_number(1),
             number_of_irwls_iters(1),
             interrupting_threshold(1.0),
