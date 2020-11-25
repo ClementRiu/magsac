@@ -9,6 +9,7 @@ expIterMax=${expIterMax:-10000}
 expModel=${expModel:-0}
 expMagsacPP=${expMagsacPP:-0}
 expMagsacPartition=${expMagsacPartition:-10}
+expTime=${expTime:-2}
 expMaxSigma=${expMaxSigma:-10}
 expConfidence=${expConfidence:-0.99}
 expRefThreshold=${expRefThreshold:-2.0}
@@ -76,7 +77,7 @@ do
     do
         #Gaussian Noise:
 
-        expArgs="-i ${expIterMax} -u ${expModel} -m ${expMagsacPartition} -s ${expMaxSigma} -c ${expConfidence} -r ${expRefThreshold} -e ${expNGen} -n ${expNRun}"
+        expArgs="-i ${expIterMax} -u ${expModel} -m ${expMagsacPartition} -l ${expTime} -s ${expMaxSigma} -c ${expConfidence} -r ${expRefThreshold} -e ${expNGen} -n ${expNRun}"
 
 
         if [ "${expMagsacPP}" -eq "1" ]; then

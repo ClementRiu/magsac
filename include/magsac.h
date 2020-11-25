@@ -28,14 +28,14 @@ public:
         MAGSAC_PLUS_PLUS
     };
 
-    MAGSAC(const Version magsac_version_ = Version::MAGSAC_PLUS_PLUS, const size_t partitionNumber = 5) :
+    MAGSAC(const Version magsac_version_ = Version::MAGSAC_PLUS_PLUS) :
             time_limit(std::numeric_limits<double>::max()), //
             desired_fps(-1),
             iteration_limit(std::numeric_limits<size_t>::max()),
             maximum_threshold(10.0),
             apply_post_processing(true),
             mininum_iteration_number(50),
-            partition_number(partitionNumber),
+            partition_number(5),
             core_number(1),
             number_of_irwls_iters(1),
             interrupting_threshold(1.0),
@@ -117,7 +117,7 @@ public:
     }
 
     // A function to set a desired minimum frames-per-second (FPS) value.
-    void setFPS(int fps_) {
+    void setFPS(double fps_) {
         desired_fps = fps_; // The required FPS.
         // The time limit which the FPS implies
         time_limit = fps_ <= 0 ?
@@ -160,7 +160,7 @@ protected:
     double maximum_threshold; // The maximum sigma value
     size_t core_number; // Number of core used in sigma-consensus
     double time_limit; // A time limit after the algorithm is interrupted
-    int desired_fps; // The desired FPS (TODO: not tested with MAGSAC)
+    double desired_fps; // The desired FPS (TODO: not tested with MAGSAC)
     bool apply_post_processing; // Decides if the post-processing step should be applied
     int point_number; // The current point number
     int last_iteration_number; // The iteration number implied by the last run of sigma-consensus

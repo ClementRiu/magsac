@@ -23,6 +23,7 @@ bool runAnExp(T &estimator,
               const cv::Mat &points,
               const bool useMagsacPP,
               const size_t partitionNumber,
+              const double inverseMaxTime,
               const double maxSigmaMagsac,
               const int iterMax,
               const double magsacRefThreshold,
@@ -48,10 +49,12 @@ bool runAnExp(T &estimator,
         magsacVersion = MAGSAC<cv::Mat, T>::Version::MAGSAC_ORIGINAL;
     }
 
-    MAGSAC<cv::Mat, T> magsac(magsacVersion, partitionNumber);
+    MAGSAC<cv::Mat, T> magsac(magsacVersion);
     magsac.setMaximumThreshold(maxSigmaMagsac); // The maximum noise scale sigma allowed
     magsac.setIterationLimit(iterMax); // Iteration limit to interrupt the cases when the algorithm run too long.
     magsac.setReferenceThreshold(magsacRefThreshold);
+    magsac.setPartitionNumber(partitionNumber);
+    magsac.setFPS(inverseMaxTime);
 
     int iterationNumber = 0; // Number of iterations required
     ModelScore score; // The model score
