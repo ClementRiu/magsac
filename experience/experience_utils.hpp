@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <Eigen/Eigen>
 
 #include <opencv2/core.hpp>
 
@@ -146,5 +147,7 @@ bool saveVectOfVect(const char *nameFile, const std::vector<std::vector<T>> &vec
     }
     return f.is_open();
 }
+
+bool loadCalibration(const char *path, Eigen::Matrix<double, 3, 3> &K1, Eigen::Matrix<double, 3, 3> &K2);
 
 #endif //MAGSAC_EXPERIENCE_UTILS_HPP

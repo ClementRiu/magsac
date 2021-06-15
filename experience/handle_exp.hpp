@@ -35,7 +35,8 @@ bool runAnExp(T &estimator,
               std::vector<std::vector<double>> &errorsAllVect,
               std::vector<double> &runtimeMagsacVect,
               std::vector<double> &precisionMagsacVect,
-              std::vector<double> &recallMagsacVect) {
+              std::vector<double> &recallMagsacVect,
+              const double normalizing_multiplier = 1) {
 
 
     std::vector<int> groundTruthInliers = getSubsetFromLabeling(groundTruthLabels, 1);
@@ -99,7 +100,7 @@ bool runAnExp(T &estimator,
     errorsVect.push_back(errorsSavedInliers);
 
     std::vector<double> errorsAll;
-    computeModelError(points, estimator, model, errorsAll);
+    computeModelError(points, estimator, model, errorsAll, normalizing_multiplier);
     errorsAllVect.push_back(errorsAll);
 
     int numTruePositivesMagsac = 0;

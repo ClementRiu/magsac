@@ -24,8 +24,13 @@ bool ReadPoints(const char *fileInliers, const char *fileOutliers, const int nGe
     }
     const int numPoints = ptsInliersAll.size();
 
-    assert(numPoints % nGen == 0);
-    const int numPointsPerGen = numPoints / nGen;
+    int numPointsPerGen;
+    bool special = false;
+    int nGen_other = nGen;
+    if (numPoints % nGen != 0) {
+        nGen_other = 5;
+    }
+    numPointsPerGen = numPoints / nGen_other;
 
     for (int gen = 0; gen < nGen; gen++) {
         std::vector<Match> ptsInliers;
@@ -98,4 +103,46 @@ saveExpInfo(const char *nameFile, const unsigned int seed, const int nGen, const
         }
     }
     return f.is_open();
+}
+
+bool loadCalibration(const char *path, Eigen::Matrix<double, 3, 3> &K1, Eigen::Matrix<double, 3, 3> &K2) {
+    std::ifstream infile(path);
+
+    if (!infile.is_open())
+        return false;
+
+    size_t row = 0,
+            column = 0;
+    double element;
+
+    K1(1, 0) = 0;
+    K1(2, 0) = 0;
+    K1(2, 1) = 0;
+    K1(2, 2) = 1;
+
+    K2(1, 0) = 0;
+    K2(2, 0) = 0;
+    K2(2, 1) = 0;
+    K2(2, 2) = 1;
+
+    int count = 0;
+    while (infile >> element) {
+        if (count < 3) {
+            K1(0, count) = element;
+        }
+        if (count >= 3 && count < 5) {
+            K1(1, count - 2) = element;
+        }
+        if (count >= 5 && count < 8) {
+            K2(0, count - 5) = element;
+        }
+        if (count >= 8) {
+            K2(1, count - 7) = element;
+        }
+        count++;
+    }
+
+    infile.close();
+
+    return count == 10;
 }

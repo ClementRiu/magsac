@@ -8,8 +8,11 @@
 #include <ctime>
 #include <mutex>
 #include <opencv2/core.hpp>
+#include <Eigen/Eigen>
 
 #include "magsac.h"
+#include "magsac_utils.h"
+#include "utils.h"
 
 #include "model.h"
 #include "estimators.h"
@@ -36,7 +39,7 @@ int main(int argc, char **argv) {
     cmd.add(utility::make_option('i', iterMax, "iterMax")
                     .doc("Number of iterations of Orsa and Ransac."));
     cmd.add(utility::make_option('u', modelUsed, "modelUsed")
-                    .doc("Model used: 0 for homography, 1 for fundamental."));
+                    .doc("Model used: 0 for homography, 1 for fundamental, 2 for essential."));
     cmd.add(utility::make_switch('p', "magsacPlusPlus")
                     .doc("Add to use Magsac++"));
     cmd.add(utility::make_option('m', partitionNumber, "partitionNumber")
@@ -95,11 +98,32 @@ int main(int argc, char **argv) {
     const char *pathToOutComputedInliers = argv[7];
     const char *pathToOutErrors = argv[8];
     const char *pathToOutErrorsAll = argv[9];
+    char *pathToInCalib;
+
+    Eigen::Matrix3d intrinsics_source, // The intrinsic parameters of the source camera
+    intrinsics_destination; // The intrinsic parameters of the destination camera
+
+    if (argc == 11){
+        pathToInCalib = argv[10];
+
+        if (loadCalibration(pathToInCalib, intrinsics_source, intrinsics_destination))
+            std::cout << "Read " << pathToInCalib << " calibration file." << std::endl;
+        else {
+            std::cerr << "Failed reading matches from " << pathToInCalib << std::endl;
+            return 1;
+        }
+    }
 
     std::vector<cv::Mat> pointsAll; // The point correspondences, each is of format "x1 y1 x2 y2"
     std::vector<std::vector<int>> groundTruthLabelsAll; // The ground truth labeling provided in the dataset
 
     std::cout << "\nReading " << pathToInInliers << " and " << pathToInOutliers << std::endl;
+
+    std::ifstream test_f(pathToOutput);
+    if (test_f.good()) {
+        std::cout << "Already computed !" << std::endl;
+        return 0;
+    }
 
     if (!ReadPoints(pathToInInliers, pathToInOutliers, nGen, pointsAll, groundTruthLabelsAll, readOutliers)) {
         std::cerr << "Problem loading points !" << std::endl;
@@ -185,6 +209,55 @@ int main(int argc, char **argv) {
                          runtimeMagsacVect,
                          precisionMagsacVect,
                          recallMagsacVect);
+            }
+            if (modelUsed == 2) {
+                if (verbose) {
+                    printf("\tEstimated model = 'essential'.\n");
+                }
+
+                // Normalize the point coordinates by the intrinsic matrices
+                cv::Mat normalized_points(points.size(), CV_64F);
+                gcransac::utils::normalizeCorrespondences(points,
+                                                          intrinsics_source,
+                                                          intrinsics_destination,
+                                                          normalized_points);
+
+                // Normalize the threshold by the average of the focal lengths
+                const double normalizing_multiplier = 1.0 / ((intrinsics_source(0, 0) + intrinsics_source(1, 1) +
+                                                              intrinsics_destination(0, 0) + intrinsics_destination(1, 1)) / 4.0);
+                const double normalized_maximum_threshold =
+                        maxSigmaMagsac * normalizing_multiplier;
+                const double normalized_ref_threshold =
+                        magsacRefThreshold * normalizing_multiplier;
+
+                magsac::utils::DefaultEssentialMatrixEstimator estimator(
+                        intrinsics_source,
+                        intrinsics_destination,
+                        0.0); // The robust homography estimator class containing the function for the fitting and residual calculation
+                gcransac::EssentialMatrix model; // The estimated model
+
+                runAnExp(estimator,
+                         model,
+                         groundTruthLabels,
+                         verbose,
+                         magsacConfidence,
+                         normalized_points,
+                         useMagsacPP,
+                         partitionNumber,
+                         1 / maxTime,
+                         normalized_maximum_threshold,
+                         iterMax,
+                         normalized_ref_threshold,
+                         mainSampler,
+                         possibleInliersVect,
+                         weightsVect,
+                         vecInliersVect,
+                         errorsVect,
+                         errorsAllVect,
+                         runtimeMagsacVect,
+                         precisionMagsacVect,
+                         recallMagsacVect,
+                         normalizing_multiplier);
             }
         } // End of the run loop.
         if (!verbose) {

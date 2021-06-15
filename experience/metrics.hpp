@@ -93,9 +93,9 @@ computeModelError(const std::vector<size_t> &indexesToCompute, const cv::Mat &po
 template<typename T, typename U>
 void
 computeModelError(const cv::Mat &points, const T &estimator, const U &model,
-                  std::vector<double> &errors) {
+                  std::vector<double> &errors, const double normalizing_multiplier = 1) {
     for (int i = 0; i < points.rows; i++){
-        errors.push_back(computePointError(i, points, estimator, model));
+        errors.push_back(computePointError(i, points, estimator, model) / normalizing_multiplier);
     }
 }
 

@@ -106,20 +106,20 @@ int main(int argc, const char* argv[])
 	const double drawing_threshold_fundamental_matrix = 1.00;
 	const double drawing_threshold_homography = 1.00;
 
-	// Run homography estimation on the EVD dataset
-	runTest(SceneType::HomographyScene, Dataset::extremeview, ransac_confidence, draw_results, drawing_threshold_homography);
-
-	// Run homography estimation on the homogr dataset
-	runTest(SceneType::HomographyScene, Dataset::homogr, ransac_confidence, draw_results, drawing_threshold_homography);
-	
-	// Run fundamental matrix estimation on the kusvod2 dataset
-	runTest(SceneType::FundamentalMatrixScene, Dataset::kusvod2, ransac_confidence, draw_results, drawing_threshold_fundamental_matrix);
-
-	// Run fundamental matrix estimation on the AdelaideRMF dataset
-	runTest(SceneType::FundamentalMatrixScene, Dataset::adelaidermf, ransac_confidence, draw_results, drawing_threshold_fundamental_matrix);
-
-	// Run fundamental matrix estimation on the Multi-H dataset
-	runTest(SceneType::FundamentalMatrixScene, Dataset::multih, ransac_confidence, draw_results, drawing_threshold_fundamental_matrix);
+//	// Run homography estimation on the EVD dataset
+//	runTest(SceneType::HomographyScene, Dataset::extremeview, ransac_confidence, draw_results, drawing_threshold_homography);
+//
+//	// Run homography estimation on the homogr dataset
+//	runTest(SceneType::HomographyScene, Dataset::homogr, ransac_confidence, draw_results, drawing_threshold_homography);
+//
+//	// Run fundamental matrix estimation on the kusvod2 dataset
+//	runTest(SceneType::FundamentalMatrixScene, Dataset::kusvod2, ransac_confidence, draw_results, drawing_threshold_fundamental_matrix);
+//
+//	// Run fundamental matrix estimation on the AdelaideRMF dataset
+//	runTest(SceneType::FundamentalMatrixScene, Dataset::adelaidermf, ransac_confidence, draw_results, drawing_threshold_fundamental_matrix);
+//
+//	// Run fundamental matrix estimation on the Multi-H dataset
+//	runTest(SceneType::FundamentalMatrixScene, Dataset::multih, ransac_confidence, draw_results, drawing_threshold_fundamental_matrix);
 
 	// Run essential matrix estimation on a scene from the strecha dataset
 	runTest(SceneType::EssentialMatrixScene, Dataset::strecha, ransac_confidence, draw_results, drawing_threshold_essential_matrix);
