@@ -16,8 +16,6 @@ expRefThreshold=${expRefThreshold:-2.0}
 expNGen=${expNGen:-5}
 expNRun=${expNRun:-5}
 
-expEnd=${expEnd:-10}
-
 while [ $# -gt 0 ]; do
 
    if [[ $1 == *"--"* ]]; then
@@ -35,41 +33,47 @@ if [ "${expFolder}" == "-1" ];then
     exit 1
 fi
 
-if [ "${expModel}" == "0" ];then
-    folderName="hom"
-fi
-if [ "${expModel}" == "1" ];then
-    folderName="fun"
-fi
-if [ "${expModel}" == "2" ];then
-    folderName="ess"
-fi
-
-inFolderGlob="/home/clementriu/Documents/these/USAC/data/essential/"
-
-
 printf "\nReading data folder: ${expFolder}\n"
 
 printf "\n\n---------- Running experiment. ----------\n\n\n\n"
 
-expCounter=1
 expBegin=1
+if [ "${expModel}" == "0" ];then
+    folderName="hom"
+    modelPrefix="hom"
+    inFolderGlob="${inFolderGlob}homog/"
+    expEnd=10
+fi
+if [ "${expModel}" == "1" ];then
+    folderName="fun"
+    modelPrefix="fun"
+    inFolderGlob="${inFolderGlob}fundmatrix/"
+    expEnd=11
+fi
+if [ "${expModel}" == "2" ];then
+    folderName="ess"
+    modelPrefix="ess"
+    inFolderGlob="${inFolderGlob}essential/"
+    expEnd=6
+fi
+
+inFolderGlob="/home/riuclement/Documents/USAC/data/essential/"
 
 expStdNoiseMin=0.0
 expStdNoiseMax=3.0
-expStdNoiseStep=0.2
+expStdNoiseStep=0.1
 
 expStdNoiseCounterMin=0 #Used for the while loop.
-expStdNoiseCounterMax=15 #Used for the while loop. = (expStdNoiseMax - expStdNoiseMin) / expStdNoiseStep
+expStdNoiseCounterMax=30 #Used for the while loop. = (expStdNoiseMax - expStdNoiseMin) / expStdNoiseStep
 
 expStdNoise=${expStdNoiseMin}
 expStdNoiseCounter=${expStdNoiseCounterMin} #Used for the while loop.
 
-expOutlierRatioMin=0.9
-expOutlierRatioMax=0.0
+expOutlierRatioMin=0.1
+expOutlierRatioMax=0.9
 expOutlierRatioStep=0.1
 
-expOutlierRatioCounterMin=0 #Used for the while loop.
+expOutlierRatioCounterMin=1 #Used for the while loop.
 expOutlierRatioCounterMax=9 #Used for the while loop. = (expOutlierRatioMax - expOutlierRatioMin) / expOutlierRatioStep
 
 expOutlierRatio=${expOutlierRatioMin}
@@ -80,7 +84,7 @@ expCounterU=${expBegin}
 
 while [ "$expCounterU" -ge "$expBegin" ] && [ "$expCounterU" -le "$expEnd" ]
 do
-    while [ "$expOutlierRatioCounter" -ge "$expOutlierRatioCounterMin" ] && [ "$expOutlierRatioCounter" -le "$expOutlierRatioCounterMax" ]
+    while [ "${expOutlierRatioCounter}" -ge "${expOutlierRatioCounterMin}" ] && [ "${expOutlierRatioCounter}" -le "${expOutlierRatioCounterMax}" ]
     do
         while [ "$expStdNoiseCounter" -ge "$expStdNoiseCounterMin" ] && [ "$expStdNoiseCounter" -le "$expStdNoiseCounterMax" ]
         do
@@ -92,19 +96,12 @@ do
             if [ "${expMagsacPP}" -eq "1" ]; then
                 expArgs="${expArgs} -p"
             fi
-            if [ "${expOutlierRatioCounter}" -eq "9" ]; then
-                expArgs="${expArgs} -o"
-            fi
             if [ "${expVerbose}" -eq "1" ]; then
                 expArgs="${expArgs} -v"
             fi
             if [ "${expSeed}" -ge "0" ]; then
                 expArgs="${expArgs} -t ${expSeed}"
             fi
-
-            #Uniform Noise:
-
-            # expArgs="${expArgs}"
 
             inInliers="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio${expOutlierRatio}_NoisyIn.txt"
             inOutliers="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio${expOutlierRatio}_Outliers.txt"
@@ -121,23 +118,76 @@ do
 
             printf "Reading ${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio${expOutlierRatio}_... ."
 
-            ~/Documents/these/magsac/bin/RunExperience $expArgs ${inInliers} ${inOutliers} ${outInfo} ${outLabels} ${outPosInl} ${outWeights} ${outInliers} ${outErrors} ${outErrorsAll} ${inCalib}
+            ~/Documents/magsac/bin/RunExperience $expArgs ${inInliers} ${inOutliers} ${outInfo} ${outLabels} ${outPosInl} ${outWeights} ${outInliers} ${outErrors} ${outErrorsAll} ${inCalib}
 
             printf "Done.\n\n"
-            expStdNoise="$(echo "$expStdNoise + $expStdNoiseStep" | bc)"
-            expStdNoiseCounter=$(($expStdNoiseCounter+1))
-        done # End of the folder loop for Uniform noise
 
-        expOutlierRatio="$(echo "$expOutlierRatio - $expOutlierRatioStep" | bc)"
-        expOutlierRatioCounter=$(($expOutlierRatioCounter+1))
+            expStdNoise="$(echo "${expStdNoise} + ${expStdNoiseStep}" | bc)"
+            expStdNoiseCounter=$((${expStdNoiseCounter}+1))
+
+        done # End of the std noise loop.
+
+        expOutlierRatio="$(echo "${expOutlierRatio} + ${expOutlierRatioStep}" | bc)"
+        expOutlierRatioCounter=$((${expOutlierRatioCounter}+1))
+
+        expStdNoise=${expStdNoiseMin}
+        expStdNoiseCounter=${expStdNoiseCounterMin}
 
         expStdNoise=${expStdNoiseMin}
         expStdNoiseCounter=0 #Used for the while loop.
 
     done # End of the outlier ratio loop.
+    expCounter=$((${expCounter}+1))
 
     expOutlierRatio=${expOutlierRatioMin}
-    expOutlierRatioCounter=${expOutlierRatioCounterMin} #Used for the while loop.
-    expCounterU=$(($expCounterU+1))
+    expOutlierRatioCounter=${expOutlierRatioCounterMin}
+done # End of the folder loop.
 
-done # End of the std noise loop.
+expCounterU=${expBegin}
+while [ "${expCounterU}" -ge "${expBegin}" ] && [ "${expCounterU}" -le "${expEnd}" ]
+do
+    while [ "${expStdNoiseCounter}" -ge "${expStdNoiseCounterMin}" ] && [ "${expStdNoiseCounter}" -le "${expStdNoiseCounterMax}" ]
+    do
+
+        expArgs="-i ${expIterMax} -u ${expModel} -m ${expMagsacPartition} -l ${expTime} -s ${expMaxSigma} -c ${expConfidence} -r ${expRefThreshold} -e ${expNGen} -n ${expNRun} -o"
+
+
+        if [ "${expMagsacPP}" -eq "1" ]; then
+            expArgs="${expArgs} -p"
+        fi
+        if [ "${expVerbose}" -eq "1" ]; then
+            expArgs="${expArgs} -v"
+        fi
+        if [ "${expSeed}" -ge "0" ]; then
+            expArgs="${expArgs} -t ${expSeed}"
+        fi
+
+        inInliers="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_NoisyIn.txt"
+        inOutliers="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_Outliers.txt"
+
+        outInfo="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacOut.txt"
+        outLabels="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacLabels.txt"
+        outPosInl="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacPosInl.txt"
+        outWeights="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacWeights.txt"
+        outInliers="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacInliers.txt"
+        outErrors="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacErrors.txt"
+        outErrorsAll="${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_magsacErrorsAll.txt"
+
+        printf "Reading ${outExpPathU}/${folderName}_${expCounterU}_std${expStdNoise}_ratio0.0_... ."
+
+        ~/Documents/magsac/bin/RunExperience $expArgs ${inInliers} ${inOutliers} ${outInfo} ${outLabels} ${outPosInl} ${outWeights} ${outInliers} ${outErrors} ${outErrorsAll}
+
+        printf "Done.\n\n"
+
+        expStdNoise="$(echo "${expStdNoise} + ${expStdNoiseStep}" | bc)"
+        expStdNoiseCounter=$((${expStdNoiseCounter}+1))
+
+    done # End of the std noise loop.
+
+
+    expStdNoise=${expStdNoiseMin}
+    expStdNoiseCounter=${expStdNoiseCounterMin}
+
+    expCounterU=$((${expCounterU}+1))
+
+done # End of the folder loop.
